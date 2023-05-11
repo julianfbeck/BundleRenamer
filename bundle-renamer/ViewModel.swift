@@ -10,7 +10,7 @@ import SwiftUI
 
 class XcodeProjectViewModel: ObservableObject {
     @Published var droppedXcodeProjectURL: URL?
-
+    
     func loadDroppedItem(item: NSItemProvider) async {
         if item.hasItemConformingToTypeIdentifier("public.file-url") {
             do {
@@ -26,7 +26,7 @@ class XcodeProjectViewModel: ObservableObject {
             }
         }
     }
-  
+    
     func listFilesInDirectory(url: URL) {
         let fileManager = FileManager.default
         
@@ -38,26 +38,40 @@ class XcodeProjectViewModel: ObservableObject {
         } catch {
             print("Error listing files in directory: \(error)")
         }
+        let fileContent = "This is an example file."
+        writeFile(url: url, content: fileContent)
     }
     func promptForDirectory() {
-           let openPanel = NSOpenPanel()
-           openPanel.title = "Select a folder"
-           openPanel.showsResizeIndicator = true
-           openPanel.showsHiddenFiles = false
-           openPanel.canChooseFiles = false
-           openPanel.canChooseDirectories = true
-           openPanel.canCreateDirectories = false
-           openPanel.allowsMultipleSelection = false
-
-           if openPanel.runModal() == .OK {
-               if let url = openPanel.url {
-                   DispatchQueue.main.async {
-                       self.droppedXcodeProjectURL = url
-                       self.listFilesInDirectory(url: url)
-                   }
-               }
-           }
-       }
+        let openPanel = NSOpenPanel()
+        openPanel.title = "Select a folder"
+        openPanel.showsResizeIndicator = true
+        openPanel.showsHiddenFiles = false
+        openPanel.canChooseFiles = false
+        openPanel.canChooseDirectories = true
+        openPanel.canCreateDirectories = false
+        openPanel.allowsMultipleSelection = false
+        
+        if openPanel.runModal() == .OK {
+            if let url = openPanel.url {
+                DispatchQueue.main.async {
+                    self.droppedXcodeProjectURL = url
+                    self.listFilesInDirectory(url: url)
+                }
+            }
+        }
+    }
+    func writeFile(url: URL, content: String) {
+        let fileManager = FileManager.default
+        let fileURL = url.appendingPathComponent("example.txt")
+        
+        do {
+            try content.write(to: fileURL, atomically: true, encoding: .utf8)
+            print("File written at: \(fileURL)")
+        } catch {
+            print("Error writing file: \(error)")
+        }
+    }
+    
 }
 extension URL {
     var isDirectory: Bool {
